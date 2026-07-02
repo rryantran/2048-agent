@@ -1,5 +1,4 @@
 import random
-import moves
 
 BOARD_SIZE = 4
 
