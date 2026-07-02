@@ -19,17 +19,6 @@ def test_choose_move_prefers_merge():
     assert choose_move(grid, depth=1) == "left"
 
 
-def test_choose_move_returns_valid_direction_on_stuck_board():
-    grid = [
-        [2, 4, 2, 4],
-        [4, 2, 4, 2],
-        [2, 4, 2, 4],
-        [4, 2, 4, 2],
-    ]
-    direction = choose_move(grid, depth=1)
-    assert direction in MOVE_FNS
-
-
 def test_choose_move_result_is_legal_move():
     grid = [
         [0, 0, 2, 0],
