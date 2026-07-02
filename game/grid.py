@@ -1,5 +1,7 @@
 import random
 
+from game import moves
+
 BOARD_SIZE = 4
 
 
@@ -48,3 +50,12 @@ def spawn_random_tile(grid: list[list[int]]) -> list[list[int]]:
         value = 4
 
     return place_tile(grid, row, col, value)
+
+
+def is_game_over(grid: list[list[int]]) -> bool:
+    """Check if the game is over (no moves possible)"""
+
+    move_fns = (moves.move_left, moves.move_right,
+                moves.move_up, moves.move_down)
+
+    return not any(move_fn(grid)[1] for move_fn in move_fns)
