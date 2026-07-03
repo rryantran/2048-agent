@@ -1,76 +1,75 @@
-from game.grid import BOARD_SIZE, get_empty_cells, max_tile
+import math
+from game.grid import BOARD_SIZE, get_empty_cells
 
 WEIGHTS = {
-    "empty_cells": 2.7,
-    "corner": 0.2,
-    "monotonicity": 0.08,
-    "smoothness": 0.1,
+    "empty_cells": 1.0,
+    "monotonicity": 1.0,
+    "smoothness": 1.0,
 }
 
 
 def empty_cells_score(grid: list[list[int]]) -> float:
     """Reward for having empty cells"""
 
-    return len(get_empty_cells(grid)) / 16
+    return len(get_empty_cells(grid)) / (BOARD_SIZE ** 2)
 
 
-def corner_score(grid: list[list[int]]) -> float:
-    """Reward for having max tile in corner"""
+def _line_penalty(line: list[int]) -> float:
+    """Penalty for one row or column; picks the better of the two"""
 
-    max_num = max_tile(grid)
-    bonus = 0.0
+    def increasing_penalty(seq: list[int]) -> float:
+        penalty = 0.0
+        for i in range(len(seq) - 1):
+            a, b = seq[i], seq[i + 1]
 
-    if grid[3][3] == max_num or grid[0][0] == max_num:
-        bonus = max_num / 2048
+            if a == 0 or b == 0:
+                continue
 
-    return bonus
+            if a > b:
+                penalty += math.log2(a) - math.log2(b)
 
+        return penalty
 
-def _line_score(line: list[int]) -> float:
-    """Score monotonicity of a single row or column"""
-    score = 0.0
-
-    for i in range(len(line) - 1):
-        current, next = line[i], line[i + 1]
-        if current == 0 or next == 0:
-            continue
-        if current > next:
-            score += next
-        else:
-            score += current
-
-    return score
+    return min(increasing_penalty(line), increasing_penalty(line[::-1]))
 
 
-def monotonicity_score(grid: list[list[int]]) -> float:
-    """Reward rows and columns that increase or decrease in value"""
-    total = 0.0
+def _monotonicity_penalty(grid: list[list[int]]) -> float:
+    """Sum best row and column penalties (lower is more monotonic)"""
 
-    for row in grid:
-        total += max(_line_score(row), _line_score(row[::-1]))
+    penalty = sum(_line_penalty(row) for row in grid)
 
-    for col_index in range(BOARD_SIZE):
-        column = [grid[row][col_index] for row in range(BOARD_SIZE)]
-        total += max(_line_score(column), _line_score(column[::-1]))
+    for col in range(BOARD_SIZE):
+        column = [grid[row][col] for row in range(BOARD_SIZE)]
+        penalty += _line_penalty(column)
 
-    return total / 100
+    return penalty
 
 
-def smoothness_penalty(grid: list[list[int]]) -> float:
-    """Penalty for adjacent tiles with very different values."""
+def _smoothness_penalty(grid: list[list[int]]) -> float:
+    """Sum log gaps between adjacent tiles (lower is smoother)."""
+
     penalty = 0.0
 
     for row in range(BOARD_SIZE):
         for col in range(BOARD_SIZE):
-            value = grid[row][col]
-            if value == 0:
-                continue
-            if col + 1 < BOARD_SIZE and grid[row][col + 1]:
-                penalty += abs(value - grid[row][col + 1])
-            if row + 1 < BOARD_SIZE and grid[row + 1][col]:
-                penalty += abs(value - grid[row + 1][col])
+            a = grid[row][col]
 
-    return penalty / 100
+            if a == 0:
+                continue
+
+            if col + 1 < BOARD_SIZE:
+                b = grid[row][col + 1]
+
+                if b != 0:
+                    penalty += abs(math.log2(a) - math.log2(b))
+
+            if row + 1 < BOARD_SIZE:
+                b = grid[row + 1][col]
+
+                if b != 0:
+                    penalty += abs(math.log2(a) - math.log2(b))
+
+    return penalty
 
 
 def evaluate(grid: list[list[int]]) -> float:
@@ -78,7 +77,6 @@ def evaluate(grid: list[list[int]]) -> float:
 
     return (
         WEIGHTS["empty_cells"] * empty_cells_score(grid)
-        + WEIGHTS["corner"] * corner_score(grid)
-        + WEIGHTS["monotonicity"] * monotonicity_score(grid)
-        - WEIGHTS["smoothness"] * smoothness_penalty(grid)
+        - WEIGHTS["monotonicity"] * _monotonicity_penalty(grid)
+        - WEIGHTS["smoothness"] * _smoothness_penalty(grid)
     )
