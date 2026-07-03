@@ -2,7 +2,7 @@ import argparse
 import random
 import statistics
 
-from agent.expectimax import SEARCH_DEPTH, choose_move
+from agent.expectimax import MAX_SEARCH_DEPTH, choose_move
 from game.grid import is_game_over, max_tile, new_grid, spawn_random_tile
 from game.moves import move_down, move_left, move_right, move_up
 
@@ -14,7 +14,7 @@ MOVE_FNS = {
 }
 
 
-def play_game(depth: int = SEARCH_DEPTH, game_number: int = 0) -> dict[str, int]:
+def play_game(depth: int = MAX_SEARCH_DEPTH, game_number: int = 0) -> dict[str, int]:
     """Play one game and return score, max tile, and move count"""
 
     grid = new_grid()
@@ -55,7 +55,7 @@ def print_board(grid: list[list[int]], score: int) -> None:
     print()
 
 
-def simulate_verbose(depth: int = SEARCH_DEPTH) -> dict[str, int]:
+def simulate_verbose(depth: int = MAX_SEARCH_DEPTH) -> dict[str, int]:
     """Play one game with board printed after each move"""
     grid = new_grid()
     score = 0
@@ -93,7 +93,7 @@ def simulate_verbose(depth: int = SEARCH_DEPTH) -> dict[str, int]:
     return result
 
 
-def batch_simulate(games: int, depth: int = SEARCH_DEPTH, seed: int | None = None) -> list[dict[str, int]]:
+def batch_simulate(games: int, depth: int = MAX_SEARCH_DEPTH, seed: int | None = None) -> list[dict[str, int]]:
     """Play multiple games and print aggregate stats"""
 
     if seed is not None:
@@ -140,8 +140,8 @@ def main() -> None:
     parser.add_argument(
         "-d", "--depth",
         type=int,
-        default=SEARCH_DEPTH,
-        help=f"Expectimax search depth (default: {SEARCH_DEPTH})",
+        default=MAX_SEARCH_DEPTH,
+        help=f"Expectimax search depth (default: {MAX_SEARCH_DEPTH})",
     )
     parser.add_argument(
         "-s", "--seed",

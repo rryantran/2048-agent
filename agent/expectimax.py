@@ -45,12 +45,12 @@ def search_depth(grid: list[list[int]], max_depth: int = MAX_SEARCH_DEPTH) -> in
     return max_depth - 1
 
 
-def choose_move(grid: list[list[int]], max_depth: int = MAX_SEARCH_DEPTH) -> str | None:
+def choose_move(grid: list[list[int]], depth: int = MAX_SEARCH_DEPTH) -> str | None:
     """Return the direction with the highest expected utility"""
 
     clear_cache()
 
-    depth = search_depth(grid, max_depth)
+    depth = search_depth(grid, depth)
 
     best_direction = None
     best_value = float("-inf")
