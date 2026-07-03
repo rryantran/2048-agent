@@ -14,9 +14,28 @@ DIRECTIONS = {
 
 SPAWN_PROBS = [(2, 0.9), (4, 0.1)]
 
+# Key is a tuple of the grid and depth, value is utility
+_max_cache = {}
+_chance_cache = {}
 
-def choose_move(grid: list[list[int]], depth: int = SEARCH_DEPTH) -> str:
+
+def _grid_key(grid: list[list[int]]) -> tuple[tuple[int, ...], ...]:
+    """Return a tuple of the grid"""
+
+    return tuple(tuple(row) for row in grid)
+
+
+def clear_cache() -> None:
+    """Clear cache for new game"""
+
+    _max_cache.clear()
+    _chance_cache.clear()
+
+
+def choose_move(grid: list[list[int]], depth: int = SEARCH_DEPTH) -> str | None:
     """Return the direction with the highest expected utility"""
+
+    clear_cache()
 
     best_direction = None
     best_value = float("-inf")
@@ -40,35 +59,56 @@ def choose_move(grid: list[list[int]], depth: int = SEARCH_DEPTH) -> str:
 def _max_node(grid: list[list[int]], depth: int) -> float:
     """Return the maximum utility of the max node"""
 
+    key = (_grid_key(grid), depth)
+
+    # Return cached value
+    if key in _max_cache:
+        return _max_cache[key]
+
     if depth == 0 or is_game_over(grid):
-        return evaluate(grid)
+        result = evaluate(grid)
+    else:
+        util = float("-inf")
 
-    best_value = float("-inf")
+        for move_fn in DIRECTIONS.values():
+            new_grid, moved, _ = move_fn(grid)
 
-    for move_fn in DIRECTIONS.values():
-        new_grid, moved, _ = move_fn(grid)
-        if not moved:
-            continue
+            if not moved:
+                continue
 
-        best_value = max(best_value, _chance_node(new_grid, depth - 1))
+            util = max(util, _chance_node(new_grid, depth - 1))
 
-    return best_value
+        result = util
+
+    _max_cache[key] = result
+
+    return result
 
 
 def _chance_node(grid: list[list[int]], depth: int) -> float:
     """Return the expected utility of the chance node"""
 
+    key = (_grid_key(grid), depth)
+
+    # Return cached value
+    if key in _chance_cache:
+        return _chance_cache[key]
+
     if is_game_over(grid):
-        return evaluate(grid)
+        result = evaluate(grid)
+    else:
+        empty_cells = get_empty_cells(grid)
 
-    empty_cells = get_empty_cells(grid)
+        cell_prob = 1.0 / len(empty_cells)
+        util = 0.0
 
-    cell_prob = 1.0 / len(empty_cells)
-    expected_value = 0.0
+        for row, col in empty_cells:
+            for value, spawn_prob in SPAWN_PROBS:
+                child = place_tile(grid, row, col, value)
+                util += cell_prob * spawn_prob * _max_node(child, depth)
 
-    for row, col in empty_cells:
-        for value, spawn_prob in SPAWN_PROBS:
-            child = place_tile(grid, row, col, value)
-            expected_value += cell_prob * spawn_prob * _max_node(child, depth)
+        result = util
 
-    return expected_value
+    _chance_cache[key] = result
+
+    return result
