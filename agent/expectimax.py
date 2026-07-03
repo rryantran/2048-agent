@@ -3,7 +3,8 @@ from game.moves import move_down, move_left, move_right, move_up
 
 from agent.heuristic import evaluate
 
-SEARCH_DEPTH = 2
+MAX_SEARCH_DEPTH = 2
+ADAPTIVE_EMPTY_THRESHOLD = 6
 
 DIRECTIONS = {
     "left": move_left,
@@ -26,16 +27,30 @@ def _grid_key(grid: list[list[int]]) -> tuple[tuple[int, ...], ...]:
 
 
 def clear_cache() -> None:
-    """Clear cache for new game"""
+    """Clear cache for new move"""
 
     _max_cache.clear()
     _chance_cache.clear()
 
 
-def choose_move(grid: list[list[int]], depth: int = SEARCH_DEPTH) -> str | None:
+def search_depth(grid: list[list[int]], max_depth: int = MAX_SEARCH_DEPTH) -> int:
+    """Use max depth on crowded boards, one less on sparse boards for performance"""
+
+    if max_depth < 3:
+        return max_depth
+
+    if len(get_empty_cells(grid)) <= ADAPTIVE_EMPTY_THRESHOLD:
+        return max_depth
+
+    return max_depth - 1
+
+
+def choose_move(grid: list[list[int]], max_depth: int = MAX_SEARCH_DEPTH) -> str | None:
     """Return the direction with the highest expected utility"""
 
     clear_cache()
+
+    depth = search_depth(grid, max_depth)
 
     best_direction = None
     best_value = float("-inf")

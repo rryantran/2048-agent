@@ -15,7 +15,7 @@ def empty_cells_score(grid: list[list[int]]) -> float:
 
 
 def _line_penalty(line: list[int]) -> float:
-    """Penalty for one row or column; picks the better of the two"""
+    """Penalty for one row or column, pick the lesser penalty"""
 
     def increasing_penalty(seq: list[int]) -> float:
         penalty = 0.0
@@ -34,7 +34,7 @@ def _line_penalty(line: list[int]) -> float:
 
 
 def _monotonicity_penalty(grid: list[list[int]]) -> float:
-    """Sum best row and column penalties (lower is more monotonic)"""
+    """Sum lowest row and column penalties (lower = more monotonic)"""
 
     penalty = sum(_line_penalty(row) for row in grid)
 
@@ -46,7 +46,7 @@ def _monotonicity_penalty(grid: list[list[int]]) -> float:
 
 
 def _smoothness_penalty(grid: list[list[int]]) -> float:
-    """Sum log gaps between adjacent tiles (lower is smoother)."""
+    """Sum log gaps between adjacent tiles (lower = smoother)"""
 
     penalty = 0.0
 
@@ -73,7 +73,12 @@ def _smoothness_penalty(grid: list[list[int]]) -> float:
 
 
 def evaluate(grid: list[list[int]]) -> float:
-    """Evaluate the score of the grid"""
+    """
+    Evaluate the score of the grid 
+
+    Rewarded: empty cells
+    Penalized: poor monotonicity, poor smoothness
+    """
 
     return (
         WEIGHTS["empty_cells"] * empty_cells_score(grid)

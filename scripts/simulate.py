@@ -109,7 +109,7 @@ def batch_simulate(games: int, depth: int = SEARCH_DEPTH, seed: int | None = Non
     move_counts = [r["moves"] for r in results]
 
     print(f"Games played: {games}")
-    print(f"Search depth: {depth}")
+    print(f"Max search depth: {depth}")
     if seed is not None:
         print(f"Seed: {seed}")
     print()

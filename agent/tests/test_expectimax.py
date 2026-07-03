@@ -1,4 +1,4 @@
-from agent.expectimax import _chance_cache, _max_cache, choose_move, clear_cache
+from agent.expectimax import _chance_cache, _max_cache, choose_move, clear_cache, search_depth
 from game.moves import move_down, move_left, move_right, move_up
 
 MOVE_FNS = {
@@ -9,14 +9,22 @@ MOVE_FNS = {
 }
 
 
-def test_choose_move_prefers_merge():
-    grid = [
-        [2, 2, 0, 0],
+def test_search_depth_adaptive():
+    crowded = [
+        [2, 4, 8, 16],
+        [4, 8, 16, 32],
+        [8, 16, 32, 64],
+        [16, 32, 64, 128],
+    ]
+    open_board = [
+        [2, 0, 0, 0],
         [0, 0, 0, 0],
         [0, 0, 0, 0],
         [0, 0, 0, 0],
     ]
-    assert choose_move(grid, depth=1) == "left"
+    assert search_depth(crowded, max_depth=3) == 3
+    assert search_depth(open_board, max_depth=3) == 2
+    assert search_depth(open_board, max_depth=2) == 2
 
 
 def test_choose_move_result_is_legal_move():
