@@ -59,3 +59,9 @@ def is_game_over(grid: list[list[int]]) -> bool:
                 moves.move_up, moves.move_down)
 
     return not any(move_fn(grid)[1] for move_fn in move_fns)
+
+
+def max_tile(grid: list[list[int]]) -> int:
+    """Return the maximum tile in the grid"""
+
+    return max(max(row) for row in grid)

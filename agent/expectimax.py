@@ -3,7 +3,7 @@ from game.moves import move_down, move_left, move_right, move_up
 
 from agent.heuristic import evaluate
 
-SEARCH_DEPTH = 3
+SEARCH_DEPTH = 2
 
 DIRECTIONS = {
     "left": move_left,
